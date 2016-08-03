@@ -5,6 +5,8 @@
     var x=150;
     var screen_height = 300;
     var ball_radius = 20;
+    
+    var isPause = false;
 
     // intial values required
     var y=0;           // starting position
@@ -13,93 +15,139 @@
 
     // intializes canvas and than calls draw periodically 
     function init()
-    {
+    {   
+        var form1 = document.getElementById("form1");
+        
+        document.getElementById("curX").innerHTML = "holdor" + form1.elements[0].value;
+        document.getElementById("curY").innerHTML = form1.elements[1].value;
+        document.getElementById("curGravity").innerHTML = form1.elements[2].value;
+        document.getElementById("curVelocity").innerHTML = form1.elements[3].value;
+
+        x = form1.elements[0].value == null ? 150 : form1.elements[0].value;
+        y = form1.elements[1].value == null ? 0 : form1.elements[1].value;
+        gravity = parseInt(form1.elements[0].value) == null ? -2 : -2;
+//        dy = form1[3];
+        
+        
       context= myCanvas.getContext('2d');   // returns an object that provides methods and properties for drawing on the canvas.
       setInterval(draw,10);                 // keeps calling the function until clearInterval() is called, or the window is closed.
     }
 
+    function reset()
+    {
+        clearInterval();
+    }
+    
     // method being called by setInterval() in init()
     function draw()
     {
-      context.clearRect(0,0, screen_height,screen_height);  // clears the specified pixels within a given rectangle
-      context.beginPath();  // begins a path, or resets the current path
-      context.fillStyle="#0000ff";  //sets or returns the color, gradient, or pattern used to fill the drawing
-      
-      context.arc(x,y,20,0,Math.PI*2,true); // context.arc(x,y,radius,startingAngle,endingAngle, isCounterClockwise);
-      context.closePath();  // creates a path from the current point back to the starting point
-      context.fill();
-
-
-        document.getElementById("debug").innerHTML = 
-            "<hr> y:" + y 
-            + "<br> dy:" + dy 
-            + "<br> gravity:" + gravity;
-        if(dy != 1)
+        if(!isPause)
         {
-            var visual = "";
-            var count = Math.abs(dy);
-            for(i = 0; i < count; i++)
+            context.clearRect(0,0, screen_height,screen_height);  // clears the specified pixels within a given rectangle
+            context.beginPath();  // begins a path, or resets the current path
+            context.fillStyle="#0000ff";  //sets or returns the color, gradient, or pattern used to fill the drawing
+
+            context.arc(x,y,20,0,Math.PI*2,true); // context.arc(x,y,radius,startingAngle,endingAngle, isCounterClockwise);
+            context.closePath();  // creates a path from the current point back to the starting point
+            context.fill();
+
+            // displays debug message
+            document.getElementById("debug").innerHTML = 
+                "<hr> y:" + y 
+                + "<br> dy:" + dy 
+                + "<br> gravity:" + gravity;
+
+
+
+            if(dy != 1)
             {
-                if(dy <= 0)
-                    visual+="x";
-                else
-                    visual+="o";
+                var visual = "";
+                var count = Math.abs(dy);
+                for(i = 0; i < count; i++)
+                {
+                    if(dy <= 0)
+                        visual+="x";
+                    else
+                        visual+="o";
+                }
+                document.getElementById("change").innerHTML 
+                    = document.getElementById("change").innerHTML + visual + "----- dy:"+ dy + " | y:" +y+ " | x:"+ x + "<br>"; 
+
+                // pause drawing when ball stopped
+                if(dy== -1 && (y == 279 || y== 280))
+                {
+                    dy = 0;
+                    y = 280;
+                    gravity = 0;
+                    isPause = true;
+                }
+            } 
+
+            // ball above floor
+            if(y <= screen_height-ball_radius)
+            {
+                // flips direction when ball hits wall
+                if( y >= screen_height - ball_radius) 
+                    dy*=-1; 
+
+                dy -= gravity;
+                y += dy;
             }
-            document.getElementById("change").innerHTML 
-                = document.getElementById("change").innerHTML + "<br>" + dy + "----" + visual; 
-        } 
+            // ball below floor
+            else
+            {
+                y=screen_height-ball_radius;
+            }
 
-        // ball above floor
-        if(y <= screen_height-ball_radius)
-        {
-            // flips direction when ball hits wall
-            if( y >= screen_height - ball_radius) 
-                dy*=-1; 
-
-            dy -= gravity;
-            y += dy;
         }
-        // ball below floor
-        else
-        {
-            y=screen_height-ball_radius;
-        }
-
-
     }
     </script>
-    
-    <body>
-            <center>
-            <form>
-                <b>Intial fields required</b>
-                <br>
-                X:
-                <input type="text" name="startPosX" size="5">
-                Y:
-                <input type="text" name="startPosY" size="5">
-                <br>
-                gravity:
-                <input type="text" name="startPosY" size="5">
-                <br>
-                intial velocity:
-                <input type="text" name="startPosY" size="5">
-            </form>
-            <button type="button" onclick="init();">Start</button>
-            <button type="button" onclick="init();">Reset</button>
-            
+
+<head>
+<center><h1>Bouncing Ball</h1></center>
+</head>
+
+<body>
+    <div align="center">
+        <form id="form1">
+            <div align="center">
+            <b>Intial fields required</b>
             <br>
+            X:
+            <input type="text" name="startPosX" size="5" placeholder="150">
+                <a id="curX"></a>
             <br>
-      
+            Y:
+            <input type="text" name="startPosY" size="5" placeholder="0">
+                <a id="curY"></a>
+            <br>
+            gravity:
+            <input type="text" name="startPosY" size="5" placeholder="-2">
+                <a id="curGravity"></a>
+            <br>
+            intial velocity:
+            <input type="text" name="startPosY" size="5" placeholder="0">
+                <a id="curVelocity"></a>
+            </div>
+        </form>
+
+        <button type="button" onclick="init();">Start</button>
+        <button type="button" onclick="reset();">Reset</button>
+    </div>
+</body>
+        
+    <br>
+      <center>
             <canvas id="myCanvas" width="300" height="300" style="border:1px solid #d3d3d3;">
             </canvas>
-        
-                
+      </center>
+    <br>
+            
         <a id="debug">
         </a>
         <hr>
         <a id="change">
-                <b>Bounce Drawing</b><hr>
+                <b><center>Bounce Drawing</center></b><hr>
         </a>
 
-    </body>
+    
